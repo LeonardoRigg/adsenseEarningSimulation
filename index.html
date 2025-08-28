@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Guadagni Google AdSense</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Analytics -->
+    <!-- Application Structure Plan: Ho progettato l'applicazione con una struttura tematica e interattiva, discostandomi dalla sequenza lineare del report originale. L'obiettivo è fornire risposte immediate e un'esplorazione guidata. Si inizia con un "Calcolatore di Guadagni" per rispondere alla domanda centrale dell'utente ("quanto posso guadagnare?"). Segue una sezione sui "Fattori Chiave" (i 4 pilastri) che utilizza grafici e card per una comprensione visiva. Una sezione "Metriche Interattive" permette agli utenti di manipolare le variabili per capire le loro interconnessioni. Infine, le "Strategie di Crescita" offrono roadmap chiare. Questa architettura trasforma un report statico in uno strumento di apprendimento e pianificazione, migliorando l'usabilità e il coinvolgimento. -->
+    <!-- Visualization & Content Choices: Report Info -> Obiettivo -> Metodo di Presentazione -> Interazione -> Giustificazione. 1. Proiezioni di guadagno (Tabella 4) -> Fornire stime personalizzate -> Calcolatore interattivo (slider + dropdown) -> L'utente seleziona traffico/nicchia per vedere i guadagni -> Rende i dati immediatamente rilevanti e personali. 2. Gerarchia Nicchie (Tabella 2) -> Confrontare la redditività -> Grafico a barre orizzontale (Chart.js) -> Hover sui dati per dettagli -> Visualizza l'impatto critico della nicchia in modo più efficace di una tabella. 3. Dati Geografici (Tabella 3) -> Mostrare il valore del traffico per paese -> Grafico a barre verticale (Chart.js) -> Hover sui dati -> Evidenzia i mercati più redditizi. 4. Formule Metriche (CPC, CTR, RPM) -> Spiegare la relazione tra le metriche -> Sezione con slider interattivi -> L'utente modifica i valori per vedere l'impatto sul guadagno -> Trasforma formule astratte in un'esperienza di apprendimento tangibile. 5. Roadmap (Sezione 6) -> Presentare piani d'azione chiari -> Layout a due colonne con card -> Nessuna interazione, focus sulla leggibilità -> Struttura il contenuto per un facile confronto tra i percorsi per principianti ed esperti. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F4;
+            color: #2c3e50;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 500px;
+            }
+        }
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-[#2c3e50]">Dashboard AdSense</h1>
+            <div class="hidden md:flex space-x-6">
+                <a href="#calculator" class="text-gray-600 hover:text-[#4a90e2] transition">Calcolatore</a>
+                <a href="#factors" class="text-gray-600 hover:text-[#4a90e2] transition">Fattori Chiave</a>
+                <a href="#metrics" class="text-gray-600 hover:text-[#4a90e2] transition">Metriche</a>
+                <a href="#strategies" class="text-gray-600 hover:text-[#4a90e2] transition">Strategie</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 md:py-12">
+
+        <section class="text-center mb-16">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4 text-gray-800">Quanto si può Guadagnare con AdSense?</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                I tuoi guadagni non sono casuali. Sono il risultato di una formula strategica. Usa questa dashboard interattiva per esplorare il tuo potenziale di guadagno e capire i fattori che lo determinano.
+            </p>
+        </section>
+
+        <section id="calculator" class="mb-20 p-8 rounded-2xl shadow-xl bg-white">
+            <h3 class="text-3xl font-bold text-center mb-2">Calcolatore di Guadagni Potenziali</h3>
+            <p class="text-center text-gray-500 mb-8">Trascina lo slider e scegli una nicchia per stimare le tue entrate mensili.</p>
+            
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-6">
+                    <div>
+                        <label for="pageviews" class="block font-medium mb-2">Visualizzazioni di Pagina Mensili: <span id="pageviews-value" class="font-bold text-[#4a90e2]">100,000</span></label>
+                        <input type="range" id="pageviews" min="10000" max="1000000" step="10000" value="100000" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label for="niche-selector" class="block font-medium mb-2">Seleziona la tua Nicchia:</label>
+                        <select id="niche-selector" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-[#4a90e2] focus:border-transparent transition">
+                        </select>
+                    </div>
+                </div>
+                <div class="text-center p-8 rounded-lg bg-gray-50 border border-gray-200">
+                    <p class="text-lg text-gray-600 mb-2">Stima Guadagno Mensile</p>
+                    <p class="text-5xl font-extrabold text-[#2c3e50] tracking-tight" id="estimated-earnings">€ 200 - € 1,000</p>
+                    <p class="text-sm text-gray-400 mt-4">Basato su un CTR medio del 0.5%-2% e CPC di settore.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="factors" class="mb-20">
+            <h3 class="text-3xl font-bold text-center mb-2">I 4 Pilastri dei Ricavi AdSense</h3>
+            <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">Il successo si basa su quattro fattori strategici. Il loro effetto non è additivo, ma esponenziale.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                    <div class="text-3xl mb-3">🎯</div>
+                    <h4 class="text-xl font-bold mb-2">1. Nicchia e Contenuto</h4>
+                    <p class="text-gray-600">La scelta più critica. Nicchie come finanza o assicurazioni hanno un potenziale di guadagno intrinsecamente superiore a causa dell'alta competizione tra inserzionisti.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                    <div class="text-3xl mb-3">📈</div>
+                    <h4 class="text-xl font-bold mb-2">2. Qualità del Traffico</h4>
+                    <p class="text-gray-600">La qualità supera il volume. Un visitatore con un intento di acquisto specifico è molto più prezioso di cento visitatori casuali. La SEO è fondamentale.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                    <div class="text-3xl mb-3">🌍</div>
+                    <h4 class="text-xl font-bold mb-2">3. Posizione Geografica</h4>
+                    <p class="text-gray-600">Non tutti i clic hanno lo stesso valore. Un clic dagli USA o dal Regno Unito vale molto di più di uno da un paese in via di sviluppo a causa del potere d'acquisto.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                    <div class="text-3xl mb-3">🎨</div>
+                    <h4 class="text-xl font-bold mb-2">4. Ottimizzazione Annunci</h4>
+                    <p class="text-gray-600">Il posizionamento, i formati e la densità degli annunci sono cruciali. È un'arte bilanciare la massimizzazione dei ricavi con un'ottima esperienza utente.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-20">
+             <div class="bg-white p-8 rounded-2xl shadow-xl">
+                <h3 class="text-3xl font-bold text-center mb-2">Confronto Redditività Nicchie</h3>
+                <p class="text-center text-gray-500 mb-8">Il Costo Per Clic (CPC) varia drasticamente tra i settori. Ecco una gerarchia visiva.</p>
+                <div class="chart-container">
+                    <canvas id="nicheChart"></canvas>
+                </div>
+            </div>
+        </section>
+        
+        <section class="mb-20">
+            <div class="bg-white p-8 rounded-2xl shadow-xl">
+                <h3 class="text-3xl font-bold text-center mb-2">Valore Globale del Traffico</h3>
+                <p class="text-center text-gray-500 mb-8">Il CPC medio per paese riflette il potere d'acquisto e la competitività del mercato pubblicitario.</p>
+                <div class="chart-container">
+                    <canvas id="geoChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="metrics" class="mb-20 p-8 rounded-2xl shadow-xl bg-white">
+            <h3 class="text-3xl font-bold text-center mb-2">Esplora le Metriche Fondamentali</h3>
+            <p class="text-center text-gray-500 mb-8">Modifica CPC e CTR per vedere come influenzano il tuo RPM e i guadagni totali.</p>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="md:col-span-2 space-y-6">
+                    <div>
+                        <label for="metric-cpc" class="block font-medium mb-2">Costo Per Clic (CPC) Medio: <span id="metric-cpc-value" class="font-bold text-[#4a90e2]">€ 0.50</span></label>
+                        <input type="range" id="metric-cpc" min="0.05" max="5" step="0.05" value="0.50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label for="metric-ctr" class="block font-medium mb-2">Click-Through Rate (CTR): <span id="metric-ctr-value" class="font-bold text-[#4a90e2]">1.00%</span></label>
+                        <input type="range" id="metric-ctr" min="0.1" max="5" step="0.01" value="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+                <div class="text-center p-6 rounded-lg bg-gray-50 border border-gray-200 flex flex-col justify-center">
+                     <p class="text-lg text-gray-600 mb-2">RPM di Pagina Stimato</p>
+                    <p class="text-4xl font-extrabold text-[#2c3e50] tracking-tight" id="metric-rpm">€ 5.00</p>
+                    <p class="text-sm text-gray-400 mt-2">Per 1.000 visualizzazioni</p>
+                </div>
+            </div>
+            <div class="mt-8 text-center bg-blue-50 p-4 rounded-lg">
+                <p class="text-gray-700">Con 100.000 visualizzazioni/mese, queste metriche genererebbero circa <strong id="metric-total-earnings" class="text-xl">€ 500</strong>.</p>
+            </div>
+        </section>
+
+        <section id="strategies" class="mb-12">
+            <h3 class="text-3xl font-bold text-center mb-2">Strategie di Crescita</h3>
+            <p class="text-center text-gray-500 mb-12 max-w-2xl mx-auto">Dalla costruzione delle fondamenta alla scalata dei ricavi. Scegli il percorso adatto a te.</p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-green-400">
+                    <h4 class="text-2xl font-bold mb-4">🚀 Roadmap per il Nuovo Editore</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start"><span class="mr-3 text-green-500">1.</span><span><strong>Scegli una Nicchia di Valore:</strong> Seleziona un argomento con un buon potenziale di CPC in cui hai competenza.</span></li>
+                        <li class="flex items-start"><span class="mr-3 text-green-500">2.</span><span><strong>Crea Contenuti di Qualità:</strong> Concentrati sulla produzione di articoli utili e approfonditi che risolvono problemi.</span></li>
+                        <li class="flex items-start"><span class="mr-3 text-green-500">3.</span><span><strong>Impara le Basi della SEO:</strong> Ottimizza per i motori di ricerca per attrarre traffico organico di qualità.</span></li>
+                        <li class="flex items-start"><span class="mr-3 text-green-500">4.</span><span><strong>Inizia con Semplicità:</strong> Attiva gli "Annunci automatici" di AdSense per una configurazione iniziale facile.</span></li>
+                        <li class="flex items-start"><span class="mr-3 text-green-500">5.</span><span><strong>Collega Google Analytics:</strong> Inizia a monitorare i dati per capire il tuo pubblico e le pagine più performanti.</span></li>
+                    </ul>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-blue-400">
+                    <h4 class="text-2xl font-bold mb-4">💰 Roadmap per l'Editore Esperto</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start"><span class="mr-3 text-blue-500">1.</span><span><strong>Analisi Dati Approfondita:</strong> Usa Analytics e i Canali Personalizzati per identificare le aree più redditizie.</span></li>
+                        <li class="flex items-start"><span class="mr-3 text-blue-500">2.</span><span><strong>Implementa Test A/B:</strong> Testa sistematicamente posizionamenti, formati e dimensioni degli annunci per massimizzare il CTR.</span></li>
+                        <li class="flex items-start"><span class="mr-3 text-blue-500">3.</span><span><strong>Strategia di Contenuto Data-Driven:</strong> Crea nuovi contenuti basati sulle pagine e sugli argomenti che già generano più ricavi.</span></li>
+                        <li class="flex items-start"><span class="mr-3 text-blue-500">4.</span><span><strong>Valuta la "Scala della Monetizzazione":</strong> Se superi le 50k sessioni/mese, esplora partner di monetizzazione avanzati (Ezoic, Mediavine) per aumentare l'RPM.</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto px-6 py-4 text-center text-sm">
+            <p>&copy; 2024 Dashboard Guadagni AdSense. Dati e analisi basati sul report "Massimizzare i Ricavi per gli Editori".</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const nicheData = [
+                { name: 'Intrattenimento e Notizie', low: 5, high: 20 },
+                { name: 'Lifestyle e Moda', low: 25, high: 100 },
+                { name: 'Fai da Te e Casa', low: 100, high: 200 },
+                { name: 'Viaggi e Ospitalità', low: 200, high: 1000 },
+                { name: 'Istruzione Online', low: 400, high: 1200 },
+                { name: 'Marketing Digitale', low: 500, high: 1500 },
+                { name: 'Immobiliare', low: 600, high: 1800 },
+                { name: 'Salute e Medicina', low: 800, high: 2000 },
+                { name: 'SaaS e Soluzioni Tecnologiche', low: 900, high: 2500 },
+                { name: 'Mutui e Finanza', low: 1000, high: 3000 },
+                { name: 'Servizi Legali', low: 1200, high: 3500 },
+                { name: 'Assicurazioni', low: 1500, high: 4000 }
+            ];
+
+            const nicheChartData = {
+                labels: ['Intrattenimento', 'Moda', 'Viaggi', 'Marketing', 'Salute', 'Finanza', 'Legale', 'Assicurazioni'],
+                datasets: [{
+                    label: 'Range CPC Medio (USD)',
+                    data: [
+                        [0.10, 2], [0.50, 3], [1, 5], [10, 20], [20, 35], [25, 45], [35, 55], [40, 60]
+                    ],
+                    backgroundColor: 'rgba(74, 144, 226, 0.6)',
+                    borderColor: 'rgba(74, 144, 226, 1)',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    borderSkipped: false,
+                }]
+            };
+
+            const geoChartData = {
+                labels: ['Islanda', 'USA', 'Australia', 'UK', 'Canada', 'Austria', 'Finlandia', 'Slovenia', 'Nuova Zelanda', 'Svezia', 'Italia'],
+                datasets: [{
+                    label: 'CPC Medio (USD)',
+                    data: [0.83, 0.61, 0.57, 0.48, 0.45, 0.45, 0.45, 0.34, 0.33, 0.31, 0.13],
+                    backgroundColor: [
+                        '#4A90E2', '#50E3C2', '#F5A623', '#F8E71C', '#D0021B',
+                        '#BD10E0', '#9013FE', '#4A4A4A', '#7ED321', '#B8E986', '#E64A19'
+                    ],
+                    borderRadius: 5,
+                }]
+            };
+
+            const pageviewsSlider = document.getElementById('pageviews');
+            const pageviewsValue = document.getElementById('pageviews-value');
+            const nicheSelector = document.getElementById('niche-selector');
+            const estimatedEarnings = document.getElementById('estimated-earnings');
+
+            function populateNicheSelector() {
+                nicheData.forEach((niche, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = niche.name;
+                    nicheSelector.appendChild(option);
+                });
+                nicheSelector.value = 3; 
+            }
+
+            function updateEarnings() {
+                const pageviews = parseInt(pageviewsSlider.value);
+                const selectedNiche = nicheData[nicheSelector.value];
+                
+                pageviewsValue.textContent = pageviews.toLocaleString('it-IT');
+
+                const lowEstimate = (selectedNiche.low / 100000) * pageviews;
+                const highEstimate = (selectedNiche.high / 100000) * pageviews;
+
+                estimatedEarnings.textContent = `€ ${Math.round(lowEstimate).toLocaleString('it-IT')} - € ${Math.round(highEstimate).toLocaleString('it-IT')}`;
+            }
+
+            populateNicheSelector();
+            pageviewsSlider.addEventListener('input', updateEarnings);
+            nicheSelector.addEventListener('change', updateEarnings);
+            updateEarnings();
+
+            const renderNicheChart = () => {
+                const ctx = document.getElementById('nicheChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: nicheChartData,
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const val = context.raw;
+                                        return `CPC: $${val[0]} - $${val[1]}`;
+                                    }
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Potenziale di Guadagno per Nicchia (Range CPC in USD)',
+                                font: { size: 16 }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Costo Per Clic (USD)'
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+            const renderGeoChart = () => {
+                const ctx = document.getElementById('geoChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: geoChartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: {
+                                display: true,
+                                text: 'Top Paesi per Costo Per Clic Medio (USD)',
+                                font: { size: 16 }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'CPC Medio (USD)'
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+            renderNicheChart();
+            renderGeoChart();
+
+            const metricCpcSlider = document.getElementById('metric-cpc');
+            const metricCtrSlider = document.getElementById('metric-ctr');
+            const metricCpcValue = document.getElementById('metric-cpc-value');
+            const metricCtrValue = document.getElementById('metric-ctr-value');
+            const metricRpm = document.getElementById('metric-rpm');
+            const metricTotalEarnings = document.getElementById('metric-total-earnings');
+
+            function updateMetrics() {
+                const cpc = parseFloat(metricCpcSlider.value);
+                const ctr = parseFloat(metricCtrSlider.value);
+
+                metricCpcValue.textContent = `€ ${cpc.toFixed(2)}`;
+                metricCtrValue.textContent = `${ctr.toFixed(2)}%`;
+
+                const rpm = cpc * (ctr / 100) * 1000;
+                metricRpm.textContent = `€ ${rpm.toFixed(2)}`;
+
+                const totalEarnings = (100000 / 1000) * rpm;
+                metricTotalEarnings.textContent = `€ ${Math.round(totalEarnings).toLocaleString('it-IT')}`;
+            }
+
+            metricCpcSlider.addEventListener('input', updateMetrics);
+            metricCtrSlider.addEventListener('input', updateMetrics);
+            updateMetrics();
+
+        });
+    </script>
+</body>
+</html>
